@@ -74,10 +74,10 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Define volume for persistent storage (if required)
-VOLUME ["/app/logs"]
+# VOLUME ["/app/data"]
 
 # Set user permissions (Non-root user)
-USER appuser
+# USER root
 
 # Set the default shell
 SHELL ["/bin/sh", "-c"]
@@ -87,6 +87,9 @@ SHELL ["/bin/sh", "-c"]
 
 # Define default stop signal
 STOPSIGNAL SIGTERM
+
+# VOLUME
+VOLUME [ "/data" ]
 
 # Set an ONBUILD instruction for derived images (if needed)
 ONBUILD COPY additional-config/ /app/config/
