@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    network_mode: "host"  # HAProxy binds directly to host ports
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    network_mode: "host"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    network_mode: "host"
+    restart: unless-stopped
+
+  worker:
+    image: docker/example-voting-app-worker
+    container_name: voting_worker
+    network_mode: "host"
+    restart: unless-stopped
+
+  vote:
+    image: docker/example-voting-app-vote
+    container_name: voting_app
+    network_mode: "host"
+    restart: unless-stopped
+
+  result:
+    image: docker/example-voting-app-result
+    container_name: result_app
+    network_mode: "host"
+    restart: unless-stopped
+
+volumes:
+  db-data:

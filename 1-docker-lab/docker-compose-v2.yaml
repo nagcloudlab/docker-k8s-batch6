@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      - app-network  # Internal bridge network
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    networks:
+      - app-network  # Internal bridge network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    image: docker/example-voting-app-worker
+    container_name: voting_worker
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network  # Internal bridge network
+    restart: unless-stopped
+
+  vote:
+    image: docker/example-voting-app-vote
+    container_name: voting_app
+    network_mode: "host"  # Exposes the UI on the host
+    environment:
+      DATABASE_HOST: "postgres_db"  # Can access DB through bridge network
+      DATABASE_PORT: "5432"
+      REDIS_HOST: "redis_cache"  # Can access Redis through bridge network
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network  # This allows it to communicate with bridge network services
+    restart: unless-stopped
+
+  result:
+    image: docker/example-voting-app-result
+    container_name: result_app
+    network_mode: "host"  # Exposes the UI on the host
+    environment:
+      DATABASE_HOST: "postgres_db"
+      DATABASE_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network  # Allows communication with DB inside bridge network
+    restart: unless-stopped
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge  # Bridge network for DB, Redis, Worker, and internal communication
