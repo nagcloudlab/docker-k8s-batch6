@@ -17,9 +17,9 @@ kubectl get hpa
 
 
 
-kubectl apply -f nginx.yaml
+kubectl delete -f nginx.yaml
 kubectl get pods
-kubectl apply -f nginx-hpa.yaml
+kubectl delete -f nginx-hpa.yaml
 kubectl get hpa
 
 

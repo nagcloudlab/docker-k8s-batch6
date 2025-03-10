@@ -59,7 +59,7 @@ sudo exportfs -v
 # ✅ 4️⃣ Verify NFS access from Kind (optional check):
 
 docker ps  # Get Kind node container ID
-docker exec -it 75c64817c43f bash
+docker exec -it 08022b1ee957 bash
 apt update && apt install -y nfs-common
 showmount -e 192.168.0.107
 
@@ -240,11 +240,17 @@ kubectl wait --namespace ingress-nginx \
 kubectl apply -f voting-app-v9.yaml
 kubectl get pods
 
+curl -H "Host: vote.local" http://172.18.0.5:32301
+curl -H "Host: result.local" http://172.18.0.5:32301
 
 sudo nano /etc/hosts
+# add below line
+172.1.0.3 vote.local result.local
 
+http://vote.local:32301
+http://result.local:32301
 
-# to access form Mac
+#  ( for Mac users)
 kubectl port-forward --address 0.0.0.0 -n ingress-nginx svc/ingress-nginx-controller 8080:80
 
 
@@ -254,7 +260,7 @@ kubectl delete -f voting-app-v9.yaml
 
 
 --------------------------------------------------------------------------
-### Network policies with calico-CNI
+### Network policies with calico-CNI / cilium-CNI
 --------------------------------------------------------------------------
 
 
@@ -284,7 +290,7 @@ kubectl delete -f voting-app-v10.yaml
 
 
 --------------------------------------------------------------------------
-###  Istio with Calico?
+###  Networking with Service Mesh (Istio)
 --------------------------------------------------------------------------
 
 
@@ -325,16 +331,12 @@ kubectl get svc istio-ingressgateway -n istio-system
 kubectl get nodes -o wide
 
 echo "172.18.0.5 vote.local result.local" | sudo tee -a /etc/hosts
-curl -v -H "Host: vote.local" http://172.18.0.5:30959
-curl -v -H "Host: result.local" http://172.18.0.5:30959
+curl -v -H "Host: vote.local" http://172.18.0.5:32497
+curl -v -H "Host: result.local" http://172.18.0.5:32497
 
 # 🔥 Final Checks
 kubectl logs -l istio=ingressgateway -n istio-system
 kubectl get pods -o jsonpath='{.items[*].spec.containers[*].name}' | grep istio-proxy || echo "Sidecar not injected"
-
-# Cleanup
-kubectl delete -f voting-app-v11.yaml
-
 
 
 # istio add-ons
@@ -353,12 +355,11 @@ kubectl get pods -w
 
 
 kubectl get svc -n istio-system
-for i in {1..5000}; do curl -H "Host: vote.local" http://172.18.0.5:30959; done
+for i in {1..100000}; do curl -H "Host: vote.local" http://172.18.0.5:32497; done
 
 
 # Access Prometheus Dashboard
 istioctl dashboard prometheus
-
 
 # Access Grafana Dashboard
 istioctl dashboard grafana
@@ -385,8 +386,11 @@ kubectl get gateway
 # Access Kiali Dashboard
 istioctl dashboard kiali
 
-
-for i in {1..10000}; do curl -H "Host: vote.local" http://172.18.0.5:30959; done
+kubectl get svc -n istio-system
+for i in {1..10000}; do curl -H "Host: vote.local" http://172.18.0.5:32497; done
 
 kubectl delete -f voting-app-v12.yaml
 ```
+
+
+--------------------------------------------------------------------------
