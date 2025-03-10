@@ -74,7 +74,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Define volume for persistent storage (if required)
-# VOLUME ["/app/data"]
+VOLUME ["/app/logs"]
 
 # Set user permissions (Non-root user)
 # USER root

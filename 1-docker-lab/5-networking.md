@@ -6,7 +6,7 @@
 Create a bridge network:
 
 ```bash
-docker network create -d bridge my_bridge_network1
+docker network create my_bridge_network1
 docker network ls
 ```
 
@@ -46,19 +46,6 @@ docker rm -f static_container2
 docker run --network my_bridge_network2 --name static_container2 --ip 192.168.100.11 -it nicolaka/netshoot /bin/bash
 ifconfig
 ```
-
-
-### exercise
-
-docker network create -d bridge vote-network
-docker run --name db -d -v pg_data:/var/lib/postgresql/data -e POSTGRES_PASSWORD=postrges -e POSTGRES_HOST_AUTH_METHOD=trust --network vote-network postgres:15
-docker run --name redis -d --network vote-network redis:alpine
-docker run --name worker -d --network vote-network docker/example-voting-app-worker
-docker run --name vote -d -p 5000:80 --network vote-network docker/example-voting-app-vote
-docker run --name result -d -p 5001:80 --network vote-network docker/example-voting-app-result
-
-
-
 
 ### Host Network Driver
 
